@@ -6,13 +6,42 @@ This document outlines the phases and steps required to implement a Kotlin-to-Py
 
 The immediate first step is to clean out all remaining JS-specific and browser-specific code from the `libraries/stdlib/python` and IR lowering phases to establish a clean slate.
 
-1.  **Remove JS-specific standard library APIs:**
-    *   Delete the entire `libraries/stdlib/python/src/org.w3c` directory (DOM, WebGL, MediaCapture, etc. have no meaning in Python).
+1.  **Remove JS-specific and Browser-specific standard library APIs:**
+    *   Delete the entire `libraries/stdlib/python/src/org.w3c` directory (DOM, WebGL, MediaCapture, Fetch, etc. have no meaning in Python).
     *   Delete JS-specific packages and files within `libraries/stdlib/python/src/kotlin/browser`, `libraries/stdlib/python/src/kotlin/js`, and any JS-specific interop features (`kotlin.js` package).
     *   Remove `libraries/stdlib/python/src/kotlin/dom` if it exists.
-2.  **Clean up standard library TODOs:**
-    *   Audit files in `libraries/stdlib/python/src/kotlin/` (e.g., `ArraysJs.kt`, `NumbersJs.kt`, `uuid/UuidJs.kt`, collections). Rename them to remove "Js" suffixes (e.g., `ArraysPython.kt`) and stub out the `TODO("to be converted to python")` functions with proper Python built-ins or custom Python interop expect/actual implementations (matching what was in `krzema12/kotlin-python` where appropriate).
-    *   Replace inline JS invocations (`TODO("({})")`, `TODO("[]")`) with proper Kotlin-Python equivalents.
+2.  **Clean up standard library JS-specific Inline TODOs:**
+    A major part of the cleanup involves locating inline JS snippets currently wrapped in `TODO("...")` and replacing them with Python equivalents (or `expect/actual` constructs). These fall into several categories:
+
+    *   **Object Initialization (`TODO("({})")`)**
+        *   **Context:** Used heavily to initialize empty Javascript objects, primarily in web APIs but also in core utilities.
+        *   **Action for Web/DOM (`org.w3c.dom.*`, `org.w3c.fetch.kt`, `org.khronos.webgl.kt`):** These files contain dozens of `val o = TODO("({})")` statements (e.g., in `org.w3c.dom.mediacapture.kt`, `org.w3c.dom.kt`). Since these are web-only APIs, they will simply be deleted entirely as part of Step 1.
+        *   **Action for Core (`kotlin/json.kt`):** Replace `val res: dynamic = TODO("({})")` with Python dictionary initialization (e.g., `{}`).
+        *   **Action for Reflection (`kotlin/reflect/createInstance.kt`):** Replace `return TODO("{}")` with standard Python instantiation or interop instantiation.
+
+    *   **Array Initialization & Array Operations (`TODO("[]")`)**
+        *   **Context:** Used to initialize Javascript arrays or call `Array.prototype` methods on iterables.
+        *   **Action for Slicing (`_ArraysJs.kt`, `kotlin/collections/ArrayList.kt`):** Replace JS slicing calls like `return TODO("[]").slice.call(this)` and `return TODO("[]").slice.call(array)` with Python list slicing `this[:]` or `list(this)`.
+        *   **Action for Creation (`kotlin/kotlin.kt`, `kotlin/collections/InternalStringMap.kt`, `kotlin/collections/ArraySorting.kt`):** Replace empty array creations like `TODO("[]")` and `TODO("[]").unsafeCast<JsRawArray<E>>()` with Python empty lists `[]`.
+
+    *   **Object Operations (`TODO("Object...")`)**
+        *   **Context:** Used to invoke Javascript `Object` static methods.
+        *   **Action for Object.keys (`kotlin/json.kt`):** Replace `val keys: Array<String> = TODO("Object").keys(other)` with Python's `list(other.keys())`.
+        *   **Action for Object.create (`kotlin/collections/InternalStringMap.kt`):** Replace `val result = TODO("Object.create(null)")` with an empty Python dictionary `{}`.
+        *   **Action for Object Prototypes/Constructors (`kotlin/reflect/reflection.kt`):** Replace `TODO("Object").getPrototypeOf(e).constructor` and references to `TODO("Object")` with Python's `type(e)` or `__class__`.
+        *   **Action for Object.prototype.hasOwnProperty (`kotlin/text/regex.kt`):** Replace `TODO("Object").prototype.hasOwnProperty.call(o, name)` with standard Python `hasattr(o, name)` or `name in o`.
+
+    *   **Cryptographic & Random Values (`TODO("crypto")`)**
+        *   **Context:** Used in WebCrypto API implementations.
+        *   **Action for UUIDs (`kotlin/uuid/UuidJs.kt`):** Replace `TODO("crypto").getRandomValues(destination)` with Python's `secrets` module or `os.urandom()`.
+
+    *   **File-level "to be converted to python" (`TODO("to be converted to python")`)**
+        *   **Context:** General placeholders marking entire files or functions that were duplicated from JS but not yet ported.
+        *   **Action for Collections (`ArraysJs.kt`, `CollectionsJs.kt`, `HashMap.kt`, `HashSet.kt`, `LinkedHashMap.kt`, etc.):** Re-implement using standard Python list/dict structures, dropping the "Js" suffix.
+        *   **Action for Core Types (`NumbersJs.kt`, `sequenceJs.kt`, `UnsignedJs.kt`):** Map directly to Python `int`, `float`, and generators.
+        *   **Action for Text & Regex (`RegexJs.kt`, `StringEncodingTestJs.kt`, `regexp.kt`):** Wrap Python's `re` module and standard string encoding.
+        *   **Action for Utilities (`Base64Js.kt`, `debug.kt`, `Comparator.kt`):** Wrap Python's `base64` module, print statements, and `functools.cmp_to_key`.
+
 3.  **Clean up Compiler IR JS remnants:**
     *   In `compiler/ir/backend.python/src/org/jetbrains/kotlin/ir/backend/python/`, rename files or classes that still contain "Js" (if any) to use "Python".
     *   Remove JS-specific lowering phases (like Coroutines lowering for JS, JS Name Clashing, etc.) and JS-specific annotations from the Python backend context.
