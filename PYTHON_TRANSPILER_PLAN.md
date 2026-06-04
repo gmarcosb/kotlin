@@ -60,6 +60,12 @@ We must establish the target Abstract Syntax Tree (AST) for Python and update th
     *   Expand `IrDeclarationToPythonTransformer` to handle `IrClass`, `IrProperty`, `IrField`, and `IrSimpleFunction`.
     *   Implement an `IrExpressionToPythonTransformer` to traverse IR expressions (Blocks, Calls, Consts, TypeOps, Control Flow) and map them to Python AST nodes.
 
+
+    *   **Note on current AST & Code Generator Implementation:**
+        *   The current `PythonAst.kt` is a very simplified MVP containing basic statements (`PythonIf`, `PythonFunctionDef`, `PythonReturn`, etc.) and expressions (`PythonCall`, `PythonStringLiteral`, etc.). This needs significant expansion to cover all of Kotlin's semantics, e.g., classes, imports, lambda functions, list comprehensions, decorators, and generic type annotations.
+        *   `Transformers.kt` currently implements transformers but explicitly "ignores unsupported declarations for MVP" (e.g. classes). Also, the `IrExpressionToPythonTransformer` only has basic support for string concatenation, `getValue`, and direct builtin mappings like `println` -> `print`.
+        *   `PythonCodeGenerator.kt` correctly handles basic indentation using a visitor pattern but needs to be enhanced to support complex nesting, multi-line strings, class generation, and Python's specific whitespace semantics.
+        *   `PythonBackendContext.kt` currently throws errors for standard compiler features like `SharedVariablesManager`, `BackendSymbols`, and `InnerClassesSupport` because it is heavily stubbed. These will need to be implemented for complex Kotlin scoping/variables.
 ## Phase 3: IR Lowerings for Python
 
 Since Kotlin's IR contains Kotlin-specific constructs that don't map 1:1 to Python, we need specific lowerings before AST generation.
