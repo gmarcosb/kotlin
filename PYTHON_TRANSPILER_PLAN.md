@@ -79,7 +79,10 @@ We must establish the target Abstract Syntax Tree (AST) for Python and update th
             *   `IrTypeAlias`: Transforming to Python type hints.
         *   Also, the `IrExpressionToPythonTransformer` only has basic support for string concatenation, `getValue`, and direct builtin mappings. We must add:
             *   `IrWhen`: Map to `if-elif-else`.
-            *   `IrTypeOperatorCall`: Map casts (`as`, `is`) to Python equivalents (e.g., `isinstance`).
+            *   `IrTypeOperatorCall`: Map casts (`as`, `is`) to Python equivalents:
+                *   `is` -> Map to python `isinstance(value, type)`
+                *   `as` -> Map to direct assignments, relying on python duck typing, or explicit casts when parsing strings to numbers (`int()`, `float()`)
+                *   `as?` -> Map to `value if isinstance(value, type) else None`
         *   `PythonCodeGenerator.kt` correctly handles basic indentation using a visitor pattern but needs to be enhanced to support complex nesting, multi-line strings, class generation, and Python's specific whitespace semantics.
         *   `PythonBackendContext.kt` currently throws errors for standard compiler features like `SharedVariablesManager`, `BackendSymbols`, and `InnerClassesSupport` because it is heavily stubbed. These will need to be implemented for complex Kotlin scoping/variables.
 ## Phase 3: IR Lowerings for Python
@@ -103,8 +106,10 @@ Since Kotlin's IR contains Kotlin-specific constructs that don't map 1:1 to Pyth
 
 1.  **Define Python Interop Annotations:**
     *   Create annotations/stubs for importing Python modules:
-        *   `@PythonModule`: To denote that an external Kotlin declaration should resolve to a specific Python module (e.g., `@PythonModule("math")`).
-        *   `@PythonName`: To override the generated Python name for a Kotlin function or class, to map natively to Python naming conventions (e.g., `@PythonName("__len__")` for a size property).
+        *   `@PythonModule`: To denote that an external Kotlin declaration should resolve to a specific Python module:
+            *   Usage: `@PythonModule("math")` for math module functions.
+        *   `@PythonName`: To override the generated Python name for a Kotlin function or class, to map natively to Python naming conventions:
+            *   Usage: `@PythonName("__len__")` for a size property.
         *   `@PythonBuiltin`: To denote intrinsic Python functions that should not generate imports.
 2.  **Implement Standard Library mappings:**
     *   `kotlin.Any` -> `object` (or implicit)
