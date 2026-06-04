@@ -15,8 +15,10 @@ The immediate first step is to clean out all remaining JS-specific and browser-s
 
     *   **Object Initialization (`TODO("({})")`)**
         *   **Context:** Used heavily to initialize empty Javascript objects, primarily in web APIs but also in core utilities.
-        *   **Action for Web/DOM (`org.w3c.dom.*`, `org.w3c.fetch.kt`, `org.khronos.webgl.kt`):** These files contain dozens of `val o = TODO("({})")` statements (e.g., in `org.w3c.dom.mediacapture.kt`, `org.w3c.dom.kt`). Since these are web-only APIs, they will simply be deleted entirely as part of Step 1.
-        *   **Action for Core (`kotlin/json.kt`):** Replace `val res: dynamic = TODO("({})")` with Python dictionary initialization (e.g., `{}`).
+        *   **Action for Web/DOM (`org.w3c.dom.*`, `org.w3c.fetch.kt`, `org.khronos.webgl.kt`):** These files contain dozens of `val o = TODO("({})")` statements. Since these are web-only APIs, they will simply be deleted entirely as part of Step 1. These include:
+            *   `libraries/stdlib/python/src/org.w3c/org.w3c.dom.mediacapture.kt`
+            *   `libraries/stdlib/python/src/org.w3c/org.w3c.dom.kt`
+        *   **Action for Core (`kotlin/json.kt`):** Replace `val res: dynamic = TODO("({})")` with Python dictionary initialization: `{}`.
         *   **Action for Reflection (`kotlin/reflect/createInstance.kt`):** Replace `return TODO("{}")` with standard Python instantiation or interop instantiation.
 
     *   **Array Initialization & Array Operations (`TODO("[]")`)**
@@ -62,8 +64,22 @@ We must establish the target Abstract Syntax Tree (AST) for Python and update th
 
 
     *   **Note on current AST & Code Generator Implementation:**
-        *   The current `PythonAst.kt` is a very simplified MVP containing basic statements (`PythonIf`, `PythonFunctionDef`, `PythonReturn`, etc.) and expressions (`PythonCall`, `PythonStringLiteral`, etc.). This needs significant expansion to cover all of Kotlin's semantics, e.g., classes, imports, lambda functions, list comprehensions, decorators, and generic type annotations.
-        *   `Transformers.kt` currently implements transformers but explicitly "ignores unsupported declarations for MVP" (e.g. classes). Also, the `IrExpressionToPythonTransformer` only has basic support for string concatenation, `getValue`, and direct builtin mappings like `println` -> `print`.
+        *   The current `PythonAst.kt` is a very simplified MVP containing basic statements (`PythonIf`, `PythonFunctionDef`, `PythonReturn`) and expressions (`PythonCall`, `PythonStringLiteral`). This needs significant expansion to cover all of Kotlin's semantics. We must add:
+            *   `PythonClassDef` for mapping `IrClass` declarations.
+            *   `PythonImport` and `PythonImportFrom` for resolving external modules.
+            *   `PythonLambda` for mapping inline lambdas and anonymous functions.
+            *   `PythonListComp` and `PythonDictComp` for collection processing.
+            *   `PythonDecorator` wrappers for things like `@property` or custom method annotations.
+            *   `PythonTypeAnnotation` mapping Kotlin types to Python standard library `typing` module equivalents.
+        *   `Transformers.kt` currently implements transformers but explicitly "ignores unsupported declarations for MVP". We must add support for:
+            *   `IrClass`: Transforming properties, fields, and functions into Python class attributes and methods.
+            *   `IrConstructor`: Lowering primary/secondary constructors to `__init__` and `__new__`.
+            *   `IrProperty`: Transforming `val` and `var` definitions.
+            *   `IrEnumEntry`: Transforming to Python `Enum` values.
+            *   `IrTypeAlias`: Transforming to Python type hints.
+        *   Also, the `IrExpressionToPythonTransformer` only has basic support for string concatenation, `getValue`, and direct builtin mappings. We must add:
+            *   `IrWhen`: Map to `if-elif-else`.
+            *   `IrTypeOperatorCall`: Map casts (`as`, `is`) to Python equivalents (e.g., `isinstance`).
         *   `PythonCodeGenerator.kt` correctly handles basic indentation using a visitor pattern but needs to be enhanced to support complex nesting, multi-line strings, class generation, and Python's specific whitespace semantics.
         *   `PythonBackendContext.kt` currently throws errors for standard compiler features like `SharedVariablesManager`, `BackendSymbols`, and `InnerClassesSupport` because it is heavily stubbed. These will need to be implemented for complex Kotlin scoping/variables.
 ## Phase 3: IR Lowerings for Python
@@ -86,7 +102,10 @@ Since Kotlin's IR contains Kotlin-specific constructs that don't map 1:1 to Pyth
 ## Phase 4: Python Interop and Expect/Actual Implementations
 
 1.  **Define Python Interop Annotations:**
-    *   Create annotations/stubs for importing Python modules (e.g., `@PythonModule`, `@PythonName`).
+    *   Create annotations/stubs for importing Python modules:
+        *   `@PythonModule`: To denote that an external Kotlin declaration should resolve to a specific Python module (e.g., `@PythonModule("math")`).
+        *   `@PythonName`: To override the generated Python name for a Kotlin function or class, to map natively to Python naming conventions (e.g., `@PythonName("__len__")` for a size property).
+        *   `@PythonBuiltin`: To denote intrinsic Python functions that should not generate imports.
 2.  **Implement Standard Library mappings:**
     *   `kotlin.Any` -> `object` (or implicit)
     *   `kotlin.String` -> `str`
