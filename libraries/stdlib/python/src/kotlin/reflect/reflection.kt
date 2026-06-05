@@ -52,9 +52,9 @@ internal fun <T : Any> getKClassFromExpression(e: T): KClass<T> =
                 e is KClass<*> -> KClass::class
                 e is Array<*> -> PrimitiveClasses.arrayClass
                 else -> {
-                    val constructor = TODO("Object").getPrototypeOf(e).constructor
+                    val constructor = TODO("type(e)")
                     when {
-                        constructor === TODO("Object") -> PrimitiveClasses.anyClass
+                        constructor === TODO("type(None)") -> PrimitiveClasses.anyClass // This will need a better map later
                         constructor === TODO("Error") -> PrimitiveClasses.throwableClass
                         else -> {
                             val jsClass: JsClass<T> = constructor

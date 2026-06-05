@@ -6,11 +6,11 @@ This document outlines the phases and steps required to implement a Kotlin-to-Py
 
 The immediate first step is to clean out all remaining JS-specific and browser-specific code from the `libraries/stdlib/python` and IR lowering phases to establish a clean slate.
 
-1.  **Remove JS-specific and Browser-specific standard library APIs:**
+1.  **[COMPLETED] Remove JS-specific and Browser-specific standard library APIs:**
     *   Delete the entire `libraries/stdlib/python/src/org.w3c` directory (DOM, WebGL, MediaCapture, Fetch, etc. have no meaning in Python).
     *   Delete JS-specific packages and files within `libraries/stdlib/python/src/kotlin/browser`, `libraries/stdlib/python/src/kotlin/js`, and any JS-specific interop features (`kotlin.js` package).
     *   Remove `libraries/stdlib/python/src/kotlin/dom` if it exists.
-2.  **Clean up standard library JS-specific Inline TODOs:**
+2.  **[COMPLETED] Clean up standard library JS-specific Inline TODOs:**
     A major part of the cleanup involves locating inline JS snippets currently wrapped in `TODO("...")` and replacing them with Python equivalents (or `expect/actual` constructs). These fall into several categories:
 
     *   **Object Initialization (`TODO("({})")`)**
@@ -44,7 +44,7 @@ The immediate first step is to clean out all remaining JS-specific and browser-s
         *   **Action for Text & Regex (`RegexJs.kt`, `StringEncodingTestJs.kt`, `regexp.kt`):** Wrap Python's `re` module and standard string encoding.
         *   **Action for Utilities (`Base64Js.kt`, `debug.kt`, `Comparator.kt`):** Wrap Python's `base64` module, print statements, and `functools.cmp_to_key`.
 
-3.  **Clean up Compiler IR JS remnants:**
+3.  **[COMPLETED] Clean up Compiler IR JS remnants:**
     *   In `compiler/ir/backend.python/src/org/jetbrains/kotlin/ir/backend/python/`, rename files or classes that still contain "Js" (if any) to use "Python".
     *   Remove JS-specific lowering phases (like Coroutines lowering for JS, JS Name Clashing, etc.) and JS-specific annotations from the Python backend context.
 

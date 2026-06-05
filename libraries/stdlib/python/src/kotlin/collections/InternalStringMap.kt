@@ -66,7 +66,7 @@ private inline fun <E> JsRawArray<E>.replaceElementAtWithLast(index: Int) {
  */
 internal open class InternalStringMap<K, V> : InternalMap<K, V> {
     private fun createJsMap(): dynamic {
-        val result = TODO("Object.create(null)")
+        val result = TODO("{}")
         // force to switch object representation to dictionary mode
         result["foo"] = 1
         jsDeleteProperty(result.unsafeCast<Any>(), "foo")

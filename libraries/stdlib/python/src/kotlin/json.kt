@@ -54,7 +54,7 @@ public external interface Json {
  * Returns a simple JavaScript object (as [Json]) using provided key-value pairs as names and values of its properties.
  */
 public fun json(vararg pairs: Pair<String, Any?>): Json {
-    val res: dynamic = TODO("({})")
+    val res: dynamic = TODO("{}")
     for ((name, value) in pairs) {
         res[name] = value
     }
@@ -66,7 +66,7 @@ public fun json(vararg pairs: Pair<String, Any?>): Json {
  * Returns the original receiver.
  */
 public fun Json.add(other: Json): Json {
-    val keys: Array<String> = TODO("Object").keys(other)
+    val keys: Array<String> = TODO("list(other.keys())")
     for (key in keys) {
         if (other.asDynamic().hasOwnProperty(key)) {
             this[key] = other[key];

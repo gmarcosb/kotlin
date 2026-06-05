@@ -199,7 +199,7 @@ public actual open class ArrayList<E> internal constructor(private var array: Ar
     }
 
     override fun toArray(): Array<Any?> {
-        return TODO("[]").slice.call(array)
+        return TODO("list(array)")
     }
 
     @ExperimentalJsExport
