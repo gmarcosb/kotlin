@@ -2019,49 +2019,49 @@ public actual fun <T> Array<out T>.sortWith(comparator: Comparator<in T>, fromIn
  * Returns a *typed* object array containing all of the elements of this primitive array.
  */
 public actual fun ByteArray.toTypedArray(): Array<Byte> {
-    return TODO("list(this)")
+    return TODO("[]").slice.call(this)
 }
 
 /**
  * Returns a *typed* object array containing all of the elements of this primitive array.
  */
 public actual fun ShortArray.toTypedArray(): Array<Short> {
-    return TODO("list(this)")
+    return TODO("[]").slice.call(this)
 }
 
 /**
  * Returns a *typed* object array containing all of the elements of this primitive array.
  */
 public actual fun IntArray.toTypedArray(): Array<Int> {
-    return TODO("list(this)")
+    return TODO("[]").slice.call(this)
 }
 
 /**
  * Returns a *typed* object array containing all of the elements of this primitive array.
  */
 public actual fun LongArray.toTypedArray(): Array<Long> {
-    return TODO("list(this)")
+    return TODO("[]").slice.call(this)
 }
 
 /**
  * Returns a *typed* object array containing all of the elements of this primitive array.
  */
 public actual fun FloatArray.toTypedArray(): Array<Float> {
-    return TODO("list(this)")
+    return TODO("[]").slice.call(this)
 }
 
 /**
  * Returns a *typed* object array containing all of the elements of this primitive array.
  */
 public actual fun DoubleArray.toTypedArray(): Array<Double> {
-    return TODO("list(this)")
+    return TODO("[]").slice.call(this)
 }
 
 /**
  * Returns a *typed* object array containing all of the elements of this primitive array.
  */
 public actual fun BooleanArray.toTypedArray(): Array<Boolean> {
-    return TODO("list(this)")
+    return TODO("[]").slice.call(this)
 }
 
 /**

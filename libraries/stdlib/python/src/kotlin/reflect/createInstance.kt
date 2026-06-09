@@ -16,7 +16,7 @@ package kotlin.reflect
 public fun <T : Any> KClass<T>.createInstance(): T {
     val jsClass = js.asDynamic()
 
-    if (jsClass === TODO("type(None)")) return TODO("{}")
+    if (jsClass === TODO("Object")) return TODO("{}")
 
     val noArgsConstructor = jsClass.`$metadata$`.unsafeCast<Metadata?>()?.defaultConstructor
         ?: throw IllegalArgumentException("Class \"$simpleName\" should have a single no-arg constructor")

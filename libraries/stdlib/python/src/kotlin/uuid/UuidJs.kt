@@ -9,7 +9,7 @@ package kotlin.uuid
 import kotlin.js.internal.boxedLong.BoxedLongApi
 
 internal actual fun secureRandomBytes(destination: ByteArray): Unit {
-    TODO("os.urandom(destination.size)")
+    TODO("crypto").getRandomValues(destination)
 }
 
 internal actual fun serializedUuid(uuid: Uuid): Any =

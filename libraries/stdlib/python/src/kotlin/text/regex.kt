@@ -397,7 +397,7 @@ private fun RegExp.findNext(input: String, from: Int, nextPattern: RegExp): Matc
         }
 
         private fun hasOwnPrototypeProperty(o: Any?, name: String): Boolean {
-            return TODO("hasattr(o, name)").unsafeCast<Boolean>()
+            return TODO("Object").prototype.hasOwnProperty.call(o, name).unsafeCast<Boolean>()
         }
 
 

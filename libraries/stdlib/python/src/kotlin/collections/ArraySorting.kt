@@ -43,7 +43,7 @@ private fun getStableSortingIsSupported(): Boolean {
     _stableSortingIsSupported?.let { return it }
     _stableSortingIsSupported = false
 
-    val array = TODO("[]")
+    val array = TODO("[]").unsafeCast<Array<Int>>()
     // known implementations may use stable sort for arrays of up to 512 elements
     // so we create slightly more elements to test stability
     for (index in 0 until 600) array.asDynamic().push(index)
